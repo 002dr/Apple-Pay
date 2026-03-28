@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Сбор в лагерь - оплата Apple Pay</title>
+    <title>Camp Fundraiser - Apple Pay</title>
     <meta charset="UTF-8">
     <style>
         body {
@@ -67,17 +67,17 @@
 </head>
 <body>
     <div class="card">
-        <h1>🏕️ Сбор в лагерь</h1>
-        <div class="price">0 ₽</div>
+        <h1>🏕️ Camp Fundraiser</h1>
+        <div class="price">$0.00 USD</div>
         
         <div id="apple-pay-container"></div>
         
         <div id="thankyou-message" class="thankyou-message">
-            🎉 Спасибо за покупку! 🎉
+            🎉 Thank you for your purchase! 🎉
         </div>
         
         <div class="info">
-            Оплата через Apple Pay — быстро и безопасно
+            Pay with Apple Pay — fast & secure
         </div>
     </div>
 
@@ -95,11 +95,11 @@
             } else {
                 // Если Apple Pay недоступен, показываем сообщение
                 document.getElementById('apple-pay-container').innerHTML = 
-                    '<p style="color: #8e8e93;">Apple Pay недоступен на этом устройстве</p>';
+                    '<p style="color: #8e8e93;">Apple Pay is not available on this device</p>';
             }
         }
 
-        // Показать сообщение "Спасибо за покупку"
+        // Показать сообщение "Thank you"
         function showThankYou() {
             const thankYouDiv = document.getElementById('thankyou-message');
             const applePayBtn = document.getElementById('apple-pay-btn');
@@ -123,15 +123,15 @@
 
         // Запускаем оплату
         function startApplePay() {
-            // Создаем платежный запрос с ценой 0 рублей
+            // Создаем платежный запрос — США, доллары, цена 0
             const paymentRequest = {
-                countryCode: 'RU',           // Россия
-                currencyCode: 'RUB',         // Рубли
-                supportedNetworks: ['visa', 'mastercard', 'mir'],
+                countryCode: 'US',           // США
+                currencyCode: 'USD',         // Доллары США
+                supportedNetworks: ['visa', 'mastercard', 'amex', 'discover'],
                 merchantCapabilities: ['supports3DS'],
                 total: {
-                    label: 'Сбор в лагерь',
-                    amount: '0.00',          // Цена 0 рублей!
+                    label: 'Camp Fundraiser',
+                    amount: '0.00',          // Цена 0 долларов!
                     type: 'final'
                 }
             };
@@ -141,31 +141,29 @@
             // Шаг 1: Подтверждение продавца
             session.onvalidatemerchant = async (event) => {
                 try {
-                    // ВАЖНО: здесь нужен реальный merchantSession от платежной системы
-                    // Для демо-режима мы просто показываем сообщение
                     console.log('Validation URL:', event.validationURL);
                     
                     // Это демо-версия, показываем сообщение
-                    alert('Это демо-версия Apple Pay.\n\nДля реальной оплаты нужно подключить платежную систему (Gr4vy, Stripe и т.д.)');
+                    alert('This is a demo version of Apple Pay.\n\nFor real payments, you need to connect a payment processor (Stripe, Gr4vy, etc.)');
                     session.abort();
                 } catch (error) {
-                    console.error('Ошибка валидации:', error);
+                    console.error('Validation error:', error);
                     session.abort();
                 }
             };
 
             // Шаг 2: Обработка авторизованного платежа
             session.onpaymentauthorized = (event) => {
-                console.log('Платеж авторизован:', event.payment);
+                console.log('Payment authorized:', event.payment);
                 // Завершаем платеж успешно
                 session.completePayment(ApplePaySession.STATUS_SUCCESS);
-                // Показываем надпись "Спасибо за покупку!"
+                // Показываем надпись "Thank you!"
                 showThankYou();
             };
 
             // Шаг 3: Обработка отмены
             session.oncancel = () => {
-                console.log('Платеж отменен');
+                console.log('Payment cancelled');
             };
 
             // Запускаем сессию Apple Pay
