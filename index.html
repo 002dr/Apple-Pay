@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Сбор в лагерь - оплата Apple Pay</title>
+    <meta charset="UTF-8">
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            background: #f5f5f7;
+        }
+        .card {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+            text-align: center;
+            max-width: 400px;
+        }
+        h1 {
+            font-size: 28px;
+            margin-bottom: 10px;
+        }
+        .price {
+            font-size: 36px;
+            font-weight: bold;
+            color: #1c1c1e;
+            margin: 20px 0;
+        }
+        /* Стиль кнопки Apple Pay */
+        .apple-pay-button {
+            -webkit-appearance: -apple-pay-button;
+            -apple-pay-button-type: buy;
+            -apple-pay-button-style: black;
+            width: 100%;
+            height: 44px;
+            cursor: pointer;
+            margin: 20px 0;
+        }
+        .info {
+            font-size: 12px;
+            color: #8e8e93;
+            margin-top: 20px;
+        }
+    </style>
+    <!-- Подключаем Apple Pay JS SDK -->
+    <script crossorigin src="https://applepay.cdn-apple.com/jsapi/1.latest/apple-pay-sdk.js"></script>
+</head>
+<body>
+    <div class="card">
+        <h1>🏕️ Сбор в лагерь</h1>
+        <div class="price">35 000 ₽</div>
+        <div id="apple-pay-container"></div>
+        <div class="info">
+            Оплата через Apple Pay — быстро и безопасно
+        </div>
+    </div>
+
+    <script>
+        // Проверяем, поддерживается ли Apple Pay
+        function checkApplePay() {
+            if (window.ApplePaySession && ApplePaySession.canMakePayments()) {
+                // Показываем кнопку
+                const container = document.getElementById('apple-pay-container');
+                const button = document.createElement('button');
+                button.className = 'apple-pay-button';
+                button.onclick = startApplePay;
+                container.appendChild(button);
+            } else {
+                // Если Apple Pay недоступен, показываем сообщение
+                document.getElementById('apple-pay-container').innerHTML = 
+                    '<p style="color: #8e8e93;">Apple Pay недоступен на этом устройстве</p>';
+            }
+        }
+
+        // Запускаем оплату
+        function startApplePay() {
+            // Создаем платежный запрос
+            const paymentRequest = {
+                countryCode: 'RU',           // Россия
+                currencyCode: 'RUB',         // Рубли
+                supportedNetworks: ['visa', 'mastercard', 'mir'],
+                merchantCapabilities: ['supports3DS'],
+                total: {
+                    label: 'Сбор в лагерь',
+                    amount: '35000.00',
+                    type: 'final'
+                }
+            };
+
+            const session = new ApplePaySession(6, paymentRequest);
+
+            // Шаг 1: Подтверждение продавца
+            session.onvalidatemerchant = async (event) => {
+                try {
+                    // Здесь нужно отправить validationURL на сервер платежной системы
+                    // Для учебного проекта мы пропускаем этот шаг
+                    console.log('Validation URL:', event.validationURL);
+                    
+                    // ВАЖНО: в реальном проекте здесь будет запрос к твоему серверу
+                    // или к API платежной системы (Gr4vy, Axepta и т.д.)
+                    
+                    // Показываем сообщение, что это демо
+                    alert('Это демо-версия. Для реальной оплаты нужно подключить платежную систему.');
+                    session.abort();
+                } catch (error) {
+                    console.error('Ошибка валидации:', error);
+                    session.abort();
+                }
+            };
+
+            // Шаг 2: Обработка авторизованного платежа
+            session.onpaymentauthorized = (event) => {
+                console.log('Платеж авторизован:', event.payment);
+                // Здесь нужно отправить токен на сервер
+                session.completePayment(ApplePaySession.STATUS_SUCCESS);
+                alert('Оплата успешно завершена!');
+            };
+
+            // Шаг 3: Обработка отмены
+            session.oncancel = () => {
+                console.log('Платеж отменен');
+            };
+
+            // Запускаем сессию Apple Pay
+            session.begin();
+        }
+
+        // Запускаем проверку при загрузке страницы
+        checkApplePay();
+    </script>
+</body>
+</html>
